@@ -1,6 +1,6 @@
 ---
 name: Asterisk-CoroManager
-version: 0.10
+version: 0.11
 author: []
 abstract: 'Asterisk Manager Interface, Coro version'
 license: perl
@@ -19,7 +19,7 @@ recommends:
 provides:
   Asterisk::CoroManager:
     file: lib/Asterisk/CoroManager.pm
-    version: 0.10
+    version: 0.11
 generated_by: Module::Build version 0.33
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html

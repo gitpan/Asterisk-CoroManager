@@ -22,8 +22,8 @@ my $build = Module::Build->new
 
 my $ami_host   = $build->prompt("Specify AMI host   for test:", 'localhost');
 my $ami_port   = $build->prompt("Specify AMI port   for test:", 5038       );
-my $ami_user   = $build->prompt("Specify AMI user   for test:", 'user'     );
-my $ami_secret = $build->prompt("Specify AMI secret for test:", 'secret'   );
+my $ami_user   = $build->prompt("Specify AMI user   for test:");
+my $ami_secret = $build->prompt("Specify AMI secret for test:");
 
 $build->notes(ami_host   => $ami_host  );
 $build->notes(ami_port   => $ami_port  );

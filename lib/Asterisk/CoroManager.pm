@@ -64,8 +64,8 @@ triggered in the meanwhile.
 
 =head2 Logging / Error handling
 
-Asterisk::CoroManager uses Log::Log4perl if it is installed.  Read
-Log::Log4perl, or initialize a simple logger like this:
+Asterisk::CoroManager uses L<Log::Log4perl> if it is installed.  Read
+L<Log::Log4perl>, or initialize a simple logger like this:
 
   use Log::Log4perl qw(:easy);
   Log::Log4perl->easy_init( { level => $DEBUG,
@@ -102,7 +102,7 @@ BEGIN {
 my $EOL = "\015\012";
 my $BLANK = $EOL x 2;
 
-use vars qw($VERSION); $VERSION = '0.10'; sub version { return $VERSION }
+use vars qw($VERSION); $VERSION = '0.11'; sub version { return $VERSION }
 
 my $ACTIONID_SEQ = 1;
 my $RESULT_SEQ = 1;
@@ -196,7 +196,7 @@ sub connect
 				 );
 
     if (!$fh) {
-	$astman->error("Connection refused ($host:$port)\n");
+	$astman->error("Can't bind ($host:$port): $@\n");
 	return;
     }
 

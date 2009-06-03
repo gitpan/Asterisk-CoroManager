@@ -5,7 +5,6 @@ use strict;
 use warnings;
 use Coro;
 use Module::Build;
-use Test::Warn;
 use Test::More tests => 7;
 
 # Plan:
@@ -29,66 +28,79 @@ BEGIN
 }
 
 my  $build  = Module::Build->current;
+
 our $ASTMAN = Asterisk::CoroManager->new({
                                           host   => $build->notes('ami_host'  ),
                                           port   => $build->notes('ami_port'  ),
-                                          user   => $build->notes('ami_user'  ),
-                                          secret => $build->notes('ami_secret'),
+                                          user   => $build->notes('ami_user'  ) || 'nop',
+                                          secret => $build->notes('ami_secret') || 'nop',
                                          });
 
-ok( $ASTMAN, 'class object created' );
+isa_ok( $ASTMAN, 'Asterisk::CoroManager' );
 
-if( $ASTMAN->connect ) {
-    pass( 'connection' );
+SKIP: {
+    skip "Can't test without a manager account", 5
+      unless( $build->notes('ami_user') );
 
-    # Add an event handler for user event AutoTest
-    $ASTMAN->add_uevent_callback( 'AutoTest', sub{ pass('uevent_callback') });
 
-    # Add a default user event handler
-    $ASTMAN->add_default_uevent_callback( sub{ pass('default_uevent_callback') });
+    if ( $ASTMAN->connect )
+    {
+        pass( 'connection' );
 
-    async {
-        # Sent UserEvent to asterisk server.  It should trigger that
-        # UserEvent, being catched by handler above
-	$ASTMAN->sendcommand({
-			      Action => 'UserEvent',
-			      UserEvent => 'AutoTest',
-			     });
+        # Add an event handler for user event AutoTest
+        $ASTMAN->add_uevent_callback( 'AutoTest', sub{ pass('uevent_callback') });
 
-        # Another UserEvent, to be caught by default user event handler.
-	$ASTMAN->sendcommand({
-			      Action => 'UserEvent',
-			      UserEvent => 'SomeOtherTest',
-			     });
+        # Add a default user event handler
+        $ASTMAN->add_default_uevent_callback( sub{ pass('default_uevent_callback') });
 
-        # Trying a sendcommand with hash-ref returning
-	my $resp = $ASTMAN->sendcommand({ Action => 'Ping' });
-	if (ref $resp eq 'HASH' and
-	    $resp->{Ping} eq 'Pong' ) {
-	    pass('sendcommand hash-ref');
-	}
-        else {
-            fail('sendcommand hash-ref');
-        }
+        async {
+            # Sent UserEvent to asterisk server.  It should trigger that
+            # UserEvent, being catched by handler above
+            $ASTMAN->sendcommand({
+                                  Action => 'UserEvent',
+                                  UserEvent => 'AutoTest',
+                                 });
 
-        # Trying a sendcommand with hash returning
-	my %resp = $ASTMAN->sendcommand({ Action => 'Ping' });
-	if ($resp{Ping} eq 'Pong') {
-	    pass('sendcommand hash');
-	}
-        else {
-	    fail('sendcommand hash');
-        }
+            # Another UserEvent, to be caught by default user event handler.
+            $ASTMAN->sendcommand({
+                                  Action => 'UserEvent',
+                                  UserEvent => 'SomeOtherTest',
+                                 });
 
-	$ASTMAN->disconnect;
-    };
+            # Trying a sendcommand with hash-ref returning
+            my $resp = $ASTMAN->sendcommand({ Action => 'Ping' });
+            if (ref $resp eq 'HASH' and
+	    $resp->{Ping} eq 'Pong' )
+            {
+                pass('sendcommand hash-ref');
+            }
+            else
+            {
+                fail('sendcommand hash-ref');
+            }
 
-    $ASTMAN->eventloop;
-}
-else {
-    fail( 'connection' );
-    fail( 'uevent_callback' );
-    fail( 'default_uevent_callback' );
-    fail( 'sendcommand hash-ref' );
-    fail( 'sendcommand hash' );
+            # Trying a sendcommand with hash returning
+            my %resp = $ASTMAN->sendcommand({ Action => 'Ping' });
+            if ($resp{Ping} eq 'Pong')
+            {
+                pass('sendcommand hash');
+            }
+            else
+            {
+                fail('sendcommand hash');
+            }
+
+            $ASTMAN->disconnect;
+        };
+
+        $ASTMAN->eventloop;
+    }
+    else
+    {
+        fail( 'connection'              );
+        fail( 'uevent_callback'         );
+        fail( 'default_uevent_callback' );
+        fail( 'sendcommand hash-ref'    );
+        fail( 'sendcommand hash'        );
+    }
 }
